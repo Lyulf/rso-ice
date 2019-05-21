@@ -1,20 +1,14 @@
 #ifndef RSO_ICE_CLIENT_H
 #define RSO_ICE_CLIENT_H
 
+#include <Ice/Ice.h>
 #include <memory>
 
 namespace chat {
 
-class Client {
+class Client : public Ice::Application {
 public:
-    Client();
-    ~Client();
-    
-    virtual int main(int argc, char* argv[]);
-    
-private:
-    struct ClientImpl;
-    std::unique_ptr<ClientImpl> impl;
+    virtual int run(int argc, char* argv[]) override;
 };
 
 }

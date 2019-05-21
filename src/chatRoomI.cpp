@@ -1,30 +1,64 @@
 #include <chatRoomI.h>
+#include <algorithm>
+#include <ChatUtils.h>
+
+using namespace std;
 
 namespace chat {
 
-// lists all users currently connected
-userList listUsers(const Ice::Current& current) {
+chatRoomI::chatRoomI()
+    : chatRoom(), users() { }
 
+chatRoomI::~chatRoomI() = default;
+
+// lists all users currently connected
+userList chatRoomI::listUsers(const Ice::Current& current) {
+    UNUSED(current);
+    userList currentUsers;
+    transform(users.begin(), users.end(), currentUsers.begin(), [](auto userPair) { return userPair.first; });
+    cout << "Returning list of users\n";
+    return currentUsers;
 }
 
 // adds user to the room 
-void join(std::string nick, std::shared_ptr<UserPrx> who, const Ice::Current& current) {
-
+void chatRoomI::join(string nick, shared_ptr<UserPrx> who, const Ice::Current& current) {
+    UNUSED(current);
+    nick = validateName(nick);
+    if(users.find(nick) != users.end()) {
+        throw NickNotAvailable();
+    }
+    users[nick] = who;
+    cout << "Client \"" << nick << "\" joined the server\n";
 }
 
-// posts message from fromWho to other users in the room
-void postMessage(std::string message, std::string fromWho, const Ice::Current& current) {
-
+// ????
+void chatRoomI::postMessage(string message, string fromWho, const Ice::Current& current) {
+    UNUSED(current);
+    fromWho = validateName(fromWho);
+    for(auto userPair : users) {
+        auto user = userPair.second;
+        user->sendMessage(message, fromWho);
+    }
+    cout << "Message \"" << message << "\" from user \"" << fromWho << "\" sent\n";
 }
 
 // gets user with the given name
-std::shared_ptr<UserPrx> getUser(std::string name, const Ice::Current& current) {
-
+shared_ptr<UserPrx> chatRoomI::getUser(string name, const Ice::Current& current) {
+    UNUSED(current);
+    name = validateName(name);
+    auto user = users.find(name);
+    if(user != users.end())
+        throw NoSuchUser();
+    cout << "Returning user \"" << name << "\"\n";
+    return user->second;
 }
 
 // removes user from the room
-void Leave(std::string name, const Ice::Current& current) {
-
+void chatRoomI::Leave(string name, const Ice::Current& current) {
+    UNUSED(current);
+    name = validateName(name);
+    users.erase(name);
+    cout << "User \"" << name << "\" left the room\n";
 }
 
 }
