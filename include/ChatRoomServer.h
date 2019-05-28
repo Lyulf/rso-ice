@@ -3,6 +3,7 @@
 
 #include <Ice/Ice.h>
 #include <memory>
+#include <chat.h>
 
 namespace chat {
 

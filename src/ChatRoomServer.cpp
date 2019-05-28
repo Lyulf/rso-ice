@@ -2,6 +2,7 @@
 #include <chat.h>
 #include <Ice/Ice.h>
 #include <chatRoomFactoryI.h>
+#include <ChatUtils.h>
 
 using namespace std;
 
@@ -15,10 +16,13 @@ int ChatRoomServer::run(int argc, char** argv) {
 	chatServerPrxPtr mainServer = Ice::checkedCast<chatServerPrx>(proxy); 
 	string endPoints = "default -p " + string(argv[1]);
 	Ice::ObjectAdapterPtr adapter = communicator()->createObjectAdapterWithEndpoints("ChatRoomServer", endPoints);
-	chatRoomFactoryPtr factory = make_shared<chatRoomFactoryI>(mainServer, adapter);
+	chatRoomFactoryPtr factory = make_shared<chatRoomFactoryI>();
 	proxy = adapter->addWithUUID(factory);
 	adapter->activate();
+	auto factoryPrx = Ice::uncheckedCast<chatRoomFactoryPrx>(proxy);
+	mainServer->registerFactory(factoryPrx);
 	communicator()->waitForShutdown();
+	mainServer->unregisterFactory(factoryPrx);
 	return 0; 
 }
 

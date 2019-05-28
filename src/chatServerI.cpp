@@ -66,14 +66,14 @@ shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current
 }
 
 // registers new factory
-void chatServerI::registerFactory(shared_ptr<chatRoomFactoryPrx> crf, const Ice::Current& current) {
+void chatServerI::registerFactory(chatRoomFactoryPrxPtr crf, const Ice::Current& current) {
     UNUSED(current);
     cout << "Factory " << crf->ice_getIdentity().name << " registered\n";;
     factories[crf];
 } 
 
 // unregisters factory
-void chatServerI::unregisterFactory(shared_ptr<chatRoomFactoryPrx> crf, const Ice::Current& current) {
+void chatServerI::unregisterFactory(chatRoomFactoryPrxPtr crf, const Ice::Current& current) {
     UNUSED(current);
     cout << "Factory " << crf->ice_getIdentity().name << " unregistered\n";
     auto rooms = factories[crf];

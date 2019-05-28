@@ -1,6 +1,7 @@
 #include <chatRoomI.h>
 #include <algorithm>
 #include <ChatUtils.h>
+#include <sstream>
 
 using namespace std;
 
@@ -28,7 +29,11 @@ void chatRoomI::join(string nick, shared_ptr<UserPrx> who, const Ice::Current& c
         throw NickNotAvailable();
     }
     users[nick] = who;
-    cout << "Client \"" << nick << "\" joined the server\n";
+    ostringstream ss;
+    ss << "User \"" << nick << "\" joined the room";
+    string msg = ss.str();
+    cout << msg << endl;
+    postMessage(msg, "Server", current);
 }
 
 // ????
@@ -47,8 +52,10 @@ shared_ptr<UserPrx> chatRoomI::getUser(string name, const Ice::Current& current)
     UNUSED(current);
     name = validateName(name);
     auto user = users.find(name);
-    if(user != users.end())
+    if(user == users.end()) {
+        cout << "Couldn't find user \"" << name << "\"\n";
         throw NoSuchUser();
+    }
     cout << "Returning user \"" << name << "\"\n";
     return user->second;
 }
@@ -58,7 +65,11 @@ void chatRoomI::Leave(string name, const Ice::Current& current) {
     UNUSED(current);
     name = validateName(name);
     users.erase(name);
-    cout << "User \"" << name << "\" left the room\n";
+    ostringstream ss;
+    ss << "User \"" << name << "\" left the room";
+    string msg = ss.str();
+    cout << msg << endl;
+    postMessage(msg, "Server", current);
 }
 
 }

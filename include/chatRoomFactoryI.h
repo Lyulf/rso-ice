@@ -8,15 +8,10 @@ namespace chat {
 
 class chatRoomFactoryI : public chatRoomFactory {
 public:
-    chatRoomFactoryI(chatServerPrxPtr server, Ice::ObjectAdapterPtr adapter);
-    virtual ~chatRoomFactoryI();
-
     std::shared_ptr<chatRoomPrx> newChatRoom(std::string name, const Ice::Current& current);
 
 private:
     std::map<std::string, std::shared_ptr<chatRoom>> chatRooms;
-    chatServerPrxPtr server;
-    chatRoomFactoryPrxPtr self;
 };
 
 }
