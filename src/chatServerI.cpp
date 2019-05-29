@@ -17,6 +17,7 @@ chatServerI::~chatServerI() = default;
 RoomList chatServerI::getRooms(const Ice::Current& current) {
     UNUSED(current);
     RoomList currentRooms;
+
     for(auto room : chatRooms) {
         RoomInfo info;
         info.name = room.first;

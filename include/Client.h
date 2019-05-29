@@ -18,8 +18,8 @@ private:
     void connectToChatServer(const std::string& endPoint);
     Ice::ObjectAdapterPtr createAdapter(const std::string& port);
     void createUser(Ice::ObjectAdapterPtr adapter);
-    utils::Menu&& createLobbyMenu();
-    utils::Menu&& createRoomMenu();
+    utils::Menu createLobbyMenu();
+    utils::Menu createRoomMenu();
     //------------------------------
     //  Lobby
     //------------------------------

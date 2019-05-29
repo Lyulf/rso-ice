@@ -16,7 +16,7 @@ chatRoomI::~chatRoomI() = default;
 userList chatRoomI::listUsers(const Ice::Current& current) {
     UNUSED(current);
     userList currentUsers;
-    transform(users.begin(), users.end(), currentUsers.begin(), [](auto userPair) { return userPair.first; });
+    transform(users.begin(), users.end(), back_inserter(currentUsers), [](auto userPair) { return userPair.first; });
     cout << "Returning list of users\n";
     return currentUsers;
 }

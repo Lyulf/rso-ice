@@ -26,6 +26,7 @@ CHILD_SERVER_SRC		+=$(COMMON_SRC)
 CLIENT_SRC			+=Client.cpp
 CLIENT_SRC			+=UserI.cpp
 CLIENT_SRC			+=Menu.cpp
+CLIENT_SRC			+=MenuUtils.cpp
 CLIENT_SRC			+=$(COMMON_SRC)
 
 EXE_DIR				= bin

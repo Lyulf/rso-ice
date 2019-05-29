@@ -12,6 +12,7 @@
 #define UNUSED(x) (void)(x)
 
 namespace utils {
+
 class CommandException : public std::runtime_error {
 public:
     CommandException(const std::string& msg = "");
@@ -21,8 +22,12 @@ public:
 
 class UnknownCommandException : public CommandException {
 public:
-    UnknownCommandException(const std::string& msg = "");
+    UnknownCommandException(const std::string& command, const std::string& msg = "");
     virtual void raise() const override;
+    std::string getCommand();
+
+private:
+    std::string command;
 };
 
 class TooManyMatchingCommandsException : public CommandException {
@@ -34,6 +39,22 @@ private:
     std::vector<std::string> commands;
 };
 
+class InvalidNumberOfArgsException : public CommandException {
+public:
+    InvalidNumberOfArgsException(
+        const std::size_t numberOfArgs,
+        const std::size_t expectedNumberOfArgs,
+        const std::string& msg = ""
+    );
+    virtual void raise() const override;
+    std::size_t getNumberOfArgs() const;
+    std::size_t getExpectedNumberOfArgs() const;
+
+private:
+    std::size_t numberOfArgs;
+    std::size_t expectedNumberOfArgs;
+};
+
 class MenuException : public std::runtime_error {
 public:
     MenuException(const std::string& msg);
@@ -43,7 +64,7 @@ public:
 
 class CommandAlreadyExistsException : public MenuException {
 public:
-    CommandAlreadyExistsException(const std::string& msg);
+    CommandAlreadyExistsException(const std::string& msg = "");
     virtual void raise() const override;
 };
 
@@ -52,20 +73,20 @@ class Command {
 public:
     Command(
         const std::string& name, 
-        const std::function<void(const std::string& args)>& func,
+        const std::function<void(const std::vector<std::string>& args)>& func,
         const std::string& desc = ""
-        );
+    );
     Command(const Command& other);
-    Command(Command&& other);
+    Command(Command&& other) noexcept;
 
     Command& operator=(const Command& other);
     bool operator==(const std::string& command) const;
 
-    void invoke(const std::string& args) const;
+    void invoke(const std::vector<std::string>& args) const;
     std::string getName() const;
     std::string getDesc() const;
     std::set<std::string> getAliases() const;
-    void setFunc(const std::function<void(const std::string& args)>& func);
+    void setFunc(const std::function<void(const std::vector<std::string>& args)>& func);
     void setDesc(const std::string& desc);
     void addAlias(const std::string& alias);
     void removeAlias(const std::string& alias);
@@ -75,7 +96,7 @@ private:
 
     std::string name;
     std::set<std::string> aliases;
-    std::function<void(const std::string&)> func;
+    std::function<void(const std::vector<std::string>&)> func;
     std::string desc;
 };
 
@@ -83,8 +104,11 @@ class Menu {
 public:
     Menu();
     Menu(const Menu& other);
-    Menu(Menu&& other);
+    Menu(Menu&& other) noexcept;
+
     Menu& operator=(const Menu& other);
+    Menu& operator=(Menu&& other) noexcept;
+
     void addCommand(const Command& command);
     void invokeCommand(const std::string& command, const std::string& args) const;
     void removeCommand(const std::string& command);
