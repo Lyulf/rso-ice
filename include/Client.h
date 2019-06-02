@@ -36,7 +36,7 @@ private:
     //------------------------------
     userList listUsers();
     void sendMsg(const std::string& msg);
-    bool sendPrivateMsg(const std::string& toWho, const std::string& msg);
+    void sendPrivateMsg(const std::string& toWho, const std::string& msg);
     void leaveRoom();
     //------------------------------
     //  Variables

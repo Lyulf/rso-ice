@@ -161,7 +161,7 @@ Menu Client::createLobbyMenu() {
             } catch(NoSuchRoom& e) {
                 cout << "Room " << roomName << " doesn't exist\n";
             } catch(NickNotAvailable& e) {
-                cout << "Nick " << nick << "is not available\n";
+                cout << "Nick " << nick << " is not available\n";
             }
         },
         "join <room_name> <nick>: Joins room if it exists as <nick>\n"
@@ -203,6 +203,7 @@ Menu Client::createRoomMenu() {
             removeNCharacters(ss, 1) << '\n';
             try {
                 this->sendPrivateMsg(toWho, ss.str());
+                cout << "Message sent\n";
             } catch(NoSuchUser& e) {
                 cout << "User " << toWho << " doesn't exist\n";
             }
@@ -334,10 +335,9 @@ void Client::sendMsg(const std::string& msg) {
     room->postMessage(msg, name);
 }
 
-bool Client::sendPrivateMsg(const std::string& toWho, const std::string& msg) {
+void Client::sendPrivateMsg(const std::string& toWho, const std::string& msg) {
     auto user = room->getUser(toWho);
     user->sendPrivateMessage(msg, name);
-    return true;
 }
 
 void Client::leaveRoom() {

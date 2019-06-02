@@ -24,10 +24,15 @@ userList chatRoomI::listUsers(const Ice::Current& current) {
 // adds user to the room 
 void chatRoomI::join(string nick, shared_ptr<UserPrx> who, const Ice::Current& current) {
     UNUSED(current);
+    static long long userNo = 0;
+    if(nick.empty()) {
+        nick = "User" + to_string(userNo + 1);
+    }
     nick = validateName(nick);
     if(users.find(nick) != users.end()) {
         throw NickNotAvailable();
     }
+    userNo++;
     users[nick] = who;
     ostringstream ss;
     ss << "User \"" << nick << "\" joined the room";
@@ -36,7 +41,7 @@ void chatRoomI::join(string nick, shared_ptr<UserPrx> who, const Ice::Current& c
     postMessage(msg, "Server", current);
 }
 
-// ????
+// posts message to every user in the room
 void chatRoomI::postMessage(string message, string fromWho, const Ice::Current& current) {
     UNUSED(current);
     fromWho = validateName(fromWho);

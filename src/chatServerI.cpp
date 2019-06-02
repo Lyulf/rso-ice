@@ -43,6 +43,10 @@ shared_ptr<chatRoomPrx> chatServerI::getRoom(string name, const Ice::Current& cu
 // creates chat room using least used factory
 shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current& current) {
     UNUSED(current);
+    static long long roomNo = 0;
+    if(name.empty()) {
+        name = "Room" + to_string(roomNo + 1);
+    }
     name = validateName(name);
     if(chatRooms.find(name) != chatRooms.end()) {
         cout << "Room [" << name << "] already exists\n";
@@ -63,6 +67,7 @@ shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current
     auto room = chatRooms[name] = factory->newChatRoom(name);
     factories[factory].insert(name);
     cout << "Created room " << name << " using factory " << factory->ice_getIdentity().name << endl;
+    roomNo++;
     return room;
 }
 

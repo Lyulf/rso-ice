@@ -12,10 +12,10 @@ void UserI::sendMessage(string message, string fromWho, const Ice::Current& curr
     cout << fromWho << ": " << message << endl;
 }
 
-// sends private message to ???
-void UserI::sendPrivateMessage(string messaage, string fromWho, const Ice::Current& current) {
+// sends private message to user
+void UserI::sendPrivateMessage(string message, string fromWho, const Ice::Current& current) {
     UNUSED(current);
-    cout << "[private] " << fromWho << ": " << messaage << endl;
+    cout << "[private] " << fromWho << ": " << message << endl;
 }
 
 }

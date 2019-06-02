@@ -1,18 +1,18 @@
-CC				= g++
-STD				= -std=c++17
-WARNINGS			= -Wall -Wextra -Wpedantic #-Werror
-CXXFLAGS			= -g $(STD) $(WARNINGS) -I$(INC_DIR) -DICE_CPP11_MAPPING
-LDFLAGS				= $(STD) $(WARNINGS) -pthread -lIce++11
-DEPFLAGS		 	= -MT $@ -MD -MP -MF $(DEP_DIR)/$*.d
+CC						= g++
+STD						= -std=c++17
+WARNINGS				= -Wall -Wextra -Wpedantic #-Werror
+CXXFLAGS				= -g $(STD) $(WARNINGS) -I$(INC_DIR) -DICE_CPP11_MAPPING
+LDFLAGS					= $(STD) $(WARNINGS) -pthread -lIce++11
+DEPFLAGS			 	= -MT $@ -MD -MP -MF $(DEP_DIR)/$*.d
 
-MASTER_SERVER_EXE		= server
-CHILD_SERVER_EXE		= chatRoom
-CLIENT_EXE			= client
+MASTER_SERVER_EXE		= main_server
+CHILD_SERVER_EXE		= factory_server
+CLIENT_EXE				= client
 
-SLICE_SRC			= chat.ice
+SLICE_SRC				= chat.ice
 
-COMMON_SRC			+=$(SLICE_SRC:.ice=.cpp)
-COMMON_SRC			+=ChatUtils.cpp
+COMMON_SRC				+=$(SLICE_SRC:.ice=.cpp)
+COMMON_SRC				+=ChatUtils.cpp
 
 MASTER_SERVER_SRC		+=Server.cpp
 MASTER_SERVER_SRC		+=chatServerI.cpp 
@@ -23,30 +23,30 @@ CHILD_SERVER_SRC		+=chatRoomI.cpp
 CHILD_SERVER_SRC		+=chatRoomFactoryI.cpp
 CHILD_SERVER_SRC		+=$(COMMON_SRC)
 
-CLIENT_SRC			+=Client.cpp
-CLIENT_SRC			+=UserI.cpp
-CLIENT_SRC			+=Menu.cpp
-CLIENT_SRC			+=MenuUtils.cpp
-CLIENT_SRC			+=$(COMMON_SRC)
+CLIENT_SRC				+=Client.cpp
+CLIENT_SRC				+=UserI.cpp
+CLIENT_SRC				+=Menu.cpp
+CLIENT_SRC				+=MenuUtils.cpp
+CLIENT_SRC				+=$(COMMON_SRC)
 
-EXE_DIR				= bin
-SRC_DIR				= src
-INC_DIR				= include
-OBJ_DIR				= .obj
-DEP_DIR				= .dep
+EXE_DIR					= bin
+SRC_DIR					= src
+INC_DIR					= include
+OBJ_DIR					= .obj
+DEP_DIR					= .dep
 
 MASTER_SERVER_OBJ		= $(MASTER_SERVER_SRC:.cpp=.o)
 CHILD_SERVER_OBJ		= $(CHILD_SERVER_SRC:.cpp=.o)
-CLIENT_OBJ			= $(CLIENT_SRC:.cpp=.o)
-DEP				= $(DEP_DIR)/$(MASTER_SERVER_OBJ:.o=.d) $(DEP_DIR)/$(CHILD_SERVER_OBJ:.o=.d) $(DEP_DIR)/$(CLIENT_OBJ:.o=.d)
+CLIENT_OBJ				= $(CLIENT_SRC:.cpp=.o)
+DEP						= $(DEP_DIR)/$(MASTER_SERVER_OBJ:.o=.d) $(DEP_DIR)/$(CHILD_SERVER_OBJ:.o=.d) $(DEP_DIR)/$(CLIENT_OBJ:.o=.d)
 
 MASTER_SERVER_EXE_PATH	= $(patsubst %, $(EXE_DIR)/%, $(MASTER_SERVER_EXE))
 CHILD_SERVER_EXE_PATH	= $(patsubst %, $(EXE_DIR)/%, $(CHILD_SERVER_EXE))
-CLIENT_EXE_PATH		= $(patsubst %, $(EXE_DIR)/%, $(CLIENT_EXE))
+CLIENT_EXE_PATH			= $(patsubst %, $(EXE_DIR)/%, $(CLIENT_EXE))
 MASTER_SERVER_OBJ_PATH	= $(patsubst %, $(OBJ_DIR)/%, $(MASTER_SERVER_OBJ))
 CHILD_SERVER_OBJ_PATH	= $(patsubst %, $(OBJ_DIR)/%, $(CHILD_SERVER_OBJ))
-CLIENT_OBJ_PATH		= $(patsubst %, $(OBJ_DIR)/%, $(CLIENT_OBJ))
-SLICE_SRC_PATH		= $(patsubst %, $(SRC_DIR)/%, $(SLICE_SRC))
+CLIENT_OBJ_PATH			= $(patsubst %, $(OBJ_DIR)/%, $(CLIENT_OBJ))
+SLICE_SRC_PATH			= $(patsubst %, $(SRC_DIR)/%, $(SLICE_SRC))
 
 all: $(MASTER_SERVER_EXE_PATH) $(CHILD_SERVER_EXE_PATH) $(CLIENT_EXE_PATH)
 
