@@ -20,12 +20,17 @@ private:
     void createUser(Ice::ObjectAdapterPtr adapter);
     utils::Menu createLobbyMenu();
     utils::Menu createRoomMenu();
+    void addGlobalCommands(utils::Menu& menu);
+    //------------------------------
+    //  Global
+    //------------------------------
+    void exit();
     //------------------------------
     //  Lobby
     //------------------------------
     RoomList listRooms();
-    bool createRoom(const std::string& username, const std::string& roomName);
-    bool joinRoom(const std::string& username, const std::string& roomName);
+    void createRoom(const std::string& username, const std::string& roomName);
+    void joinRoom(const std::string& username, const std::string& roomName);
     //------------------------------
     //  Room
     //------------------------------

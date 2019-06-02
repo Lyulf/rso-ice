@@ -143,29 +143,7 @@ void swap(Command& left, Command& right) {
 }
 
 Menu::Menu()
-    :commands() {
-   Command help (
-        "help",
-        [this](auto args) {
-            if(args.empty()) {
-                auto commandList = getCommands();
-                cout << "Commands:\n";
-                for_each(commandList.begin(), commandList.end(), [](auto command) { cout << command << ", "; });
-                removeNCharacters(cout, 2) << endl;
-            } else if(args.size() == 1) {
-                cout << "Command " << args[0] << endl;
-                auto command = getCommand(args.front());
-                cout << endl;
-                cout << command.getDesc() << endl;
-            } else {
-                InvalidNumberOfArgsException(args.size(), 1).raise();
-            }
-        },
-        "help: Displays list of commands\n" 
-        "help <command>: Displays info about command\n"
-    );
-    addCommand(help);
-}
+    :commands() { }
 
 Menu::Menu(const Menu& other)
     : commands(other.commands) { }
