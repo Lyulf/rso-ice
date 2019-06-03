@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <csignal>
 
 using namespace std;
 using namespace utils;
@@ -16,6 +17,7 @@ int Client::run(int argc, char* argv[]) {
         if(argc < 2) {
             throw "Invalid number of arguments\n";
         }
+        callbackOnInterrupt();
         string endPoint = "Server:default -p 10000";
         connectToChatServer(endPoint);
         auto adapter = createAdapter(argv[1]);
@@ -31,59 +33,78 @@ int Client::run(int argc, char* argv[]) {
         cout << "Write help to get list of commands\n";
         cout << "Write help <command> to get command description\n";
         while(true) {
-            cout << endl << ">>";
             string line;
-            getline(cin, line);
-            cout << endl;
             try {
                 if(room) {
-                    if(line.front() != '/') {
-                        sendMsg(line);
-                        continue;
-                    }
-                    line.erase(line.begin());
-                    auto tokens = splitString(line, ' ');
-                    if(tokens.empty()) {
-                        continue;
-                    }
-                    auto command = tokens[0];
-                    stringstream ss;
-                    for_each(tokens.begin() + 1, tokens.end(), [&ss](auto token) { ss << token << " "; });
-                    auto args = ss.str();
-                    roomMenu.invokeCommand(command, args);
-                } else {
-                    if(line.front() == '/') {
+                    try {
+                        getline(cin, line);
+                        if(line.front() != '/') {
+                            sendMsg(line);
+                            continue;
+                        }
                         line.erase(line.begin());
+                        auto tokens = splitString(line, ' ');
+                        if(tokens.empty()) {
+                            continue;
+                        }
+                        auto command = tokens[0];
+                        stringstream ss;
+                        for_each(tokens.begin() + 1, tokens.end(), [&ss](auto token) { ss << token << " "; });
+                        auto args = ss.str();
+                        roomMenu.invokeCommand(command, args);
+                    } catch(Ice::ConnectionRefusedException& e) {
+                        cerr << "Lost connection to the chat room\n";
+                        room.reset();
                     }
-                    auto tokens = splitString(line, ' ');
-                    if(tokens.empty()) {
-                        continue;
+                } else {
+                    try {
+                        cout << endl << ">>";
+                        getline(cin, line);
+                        cout << endl;
+                        if(line.front() == '/') {
+                            line.erase(line.begin());
+                        }
+                        auto tokens = splitString(line, ' ');
+                        if(tokens.empty()) {
+                            continue;
+                        }
+                        auto command = tokens[0];
+                        stringstream ss;
+                        for_each(tokens.begin() + 1, tokens.end(), [&ss](auto token) { ss << token << " "; });
+                        auto args = ss.str();
+                        lobbyMenu.invokeCommand(command, args);
+                    } catch( Ice::ConnectionRefusedException& e) {
+                        cerr << "Lost connection to the server\n"
+                                "Exiting\n";
+                        exit(EXIT_FAILURE);
                     }
-                    auto command = tokens[0];
-                    stringstream ss;
-                    for_each(tokens.begin() + 1, tokens.end(), [&ss](auto token) { ss << token << " "; });
-                    auto args = ss.str();
-                    lobbyMenu.invokeCommand(command, args);
                 }
             } catch(UnknownCommandException& e) {
-                cout << "Error: Unknown command \"" << e.getCommand() << "\"\n";
+                cout << "Unknown command \"" << e.getCommand() << "\"\n";
             } catch(TooManyMatchingCommandsException& e) {
-                cout << "Error: Too many matching commands\n\n";
-                cout << "Candidates are:\n";
+                cout << "Too many matching commands\n"
+                        "\n"
+                        "Candidates are:\n";
                 for(auto command : e.getCommands()) {
                     cout << command << ", ";
                 }
                 removeNCharacters(cout, 2) << endl;
             } catch(InvalidNumberOfArgsException& e) {
-                cout << "Error: Invalid number of arguments\n\n";
+                ostringstream ss;
+                cout << "Invalid number of arguments\n"
+                        "\n";
                 cout << "got: " << e.getNumberOfArgs() << endl;
                 cout << "expected: " << e.getExpectedNumberOfArgs() << endl;
             }
         }
     } catch(exception& e) {
-        cout << e.what() << endl;
+        cerr << e.what() << endl;
     }
     return 0;
+}
+
+void Client::interruptCallback(int signal) {
+    exit(signal);
 }
 
 //------------------------------
@@ -122,6 +143,7 @@ Menu Client::createLobbyMenu() {
         },
         "list: Lists current rooms\n");
     listRooms.addAlias("rooms");
+    listRooms.addAlias("ls");
     menu.addCommand(listRooms);
 
     Command createRoom(
@@ -136,7 +158,7 @@ Menu Client::createLobbyMenu() {
                 this->createRoom(nick, roomName);
                 cout << "Created room " << roomName << endl;
                 cout << endl;
-                cout << "To write a command start the line with '\\'\n";
+                cout << "To write a command start the line with '/'\n";
             } catch(NameAlreadyExists& e) {
                 cout << "Room " << roomName << " already exists\n";
             }
@@ -157,7 +179,7 @@ Menu Client::createLobbyMenu() {
                 this->joinRoom(nick, roomName);
                 cout << "Joined room " << roomName << endl;
                 cout << endl;
-                cout << "To write a command start the line with '\\'\n";
+                cout << "To write a command start the line with '/'\n";
             } catch(NoSuchRoom& e) {
                 cout << "Room " << roomName << " doesn't exist\n";
             } catch(NickNotAvailable& e) {
@@ -188,6 +210,7 @@ Menu Client::createRoomMenu() {
         "list: Lists current users\n"
     );
     listUsers.addAlias("users");
+    listUsers.addAlias("ls");
     menu.addCommand(listUsers);
 
     Command sendPrivateMsg (
@@ -275,7 +298,7 @@ void Client::addGlobalCommands(Menu& menu) {
                 string input;
                 getline(cin, input);
                 if(input == "y") {
-                    this->exit();
+                    this->exit(EXIT_SUCCESS);
                 } else if(input == "n") {
                     break;
                 } else {
@@ -293,13 +316,13 @@ void Client::addGlobalCommands(Menu& menu) {
 //  Global
 //------------------------------
 
-void Client::exit() {
+void Client::exit(int status) {
     leaveRoom();
     auto ic = communicator();
     if(ic) {
         ic->destroy();
     }
-    std::exit(EXIT_SUCCESS);
+    std::exit(status);
 }
 
 //------------------------------

@@ -10,6 +10,7 @@ namespace chat {
 class Client : public Ice::Application {
 public:
     virtual int run(int argc, char* argv[]) override;
+    virtual void interruptCallback(int signal) override;
 
 private:
     //------------------------------
@@ -24,7 +25,7 @@ private:
     //------------------------------
     //  Global
     //------------------------------
-    void exit();
+    void exit(int status);
     //------------------------------
     //  Lobby
     //------------------------------

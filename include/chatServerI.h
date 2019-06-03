@@ -4,6 +4,7 @@
 #include <chat.h>
 #include <map>
 #include <unordered_set>
+#include <ChatUtils.h>
 
 namespace chat {
 
@@ -19,8 +20,8 @@ public:
 	void unregisterFactory(std::shared_ptr<chatRoomFactoryPrx> crf, const Ice::Current& current);
 
 private:
-	std::map<std::string, std::shared_ptr<chatRoomPrx>> chatRooms;
-	std::map<std::shared_ptr<chatRoomFactoryPrx>, std::unordered_set<std::string>> factories;
+	std::map<std::string, chatRoomPrxPtr> chatRooms;
+	std::map<chatRoomFactoryPrxPtr, std::unordered_set<std::string>, Ice::ProxyIdentityLess> factories;
 };
 
 }

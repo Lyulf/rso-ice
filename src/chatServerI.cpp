@@ -24,7 +24,6 @@ RoomList chatServerI::getRooms(const Ice::Current& current) {
         info.activeUsers = room.second->listUsers().size();
         currentRooms.push_back(info);
     }
-    cout << "Returning list of rooms\n";
     return currentRooms;
 }
 
@@ -33,10 +32,8 @@ shared_ptr<chatRoomPrx> chatServerI::getRoom(string name, const Ice::Current& cu
     UNUSED(current);
     name = validateName(name);
     if(chatRooms.find(name) == chatRooms.end()) {
-        cout << "Room [" << name << "] doesnt exist\n";
         throw NoSuchRoom();
     }
-    cout << "Returning room [" << name << "]\n";
     return chatRooms[name];
 }
 
@@ -49,7 +46,6 @@ shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current
     }
     name = validateName(name);
     if(chatRooms.find(name) != chatRooms.end()) {
-        cout << "Room [" << name << "] already exists\n";
         throw NameAlreadyExists();
     }
     shared_ptr<chatRoomFactoryPrx> factory;
@@ -66,7 +62,7 @@ shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current
     }
     auto room = chatRooms[name] = factory->newChatRoom(name);
     factories[factory].insert(name);
-    cout << "Created room " << name << " using factory " << factory->ice_getIdentity().name << endl;
+    cout << "Created room [" << name << "] using factory " << factory->ice_getIdentity().name << endl;
     roomNo++;
     return room;
 }
@@ -74,14 +70,13 @@ shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current
 // registers new factory
 void chatServerI::registerFactory(chatRoomFactoryPrxPtr crf, const Ice::Current& current) {
     UNUSED(current);
-    cout << "Factory " << crf->ice_getIdentity().name << " registered\n";;
     factories[crf];
+    cout << "Registered factory " << crf->ice_getIdentity().name << endl;
 } 
 
 // unregisters factory
 void chatServerI::unregisterFactory(chatRoomFactoryPrxPtr crf, const Ice::Current& current) {
     UNUSED(current);
-    cout << "Factory " << crf->ice_getIdentity().name << " unregistered\n";
     auto rooms = factories[crf];
     for(auto iter = chatRooms.begin(); iter != chatRooms.end(); iter++) {
        if(rooms.find(iter->first) != rooms.end()) {
@@ -89,6 +84,7 @@ void chatServerI::unregisterFactory(chatRoomFactoryPrxPtr crf, const Ice::Curren
        } 
     }
     factories.erase(crf);
+    cout << "Unregistered factory " << crf->ice_getIdentity().name << endl;
 }
 
 }

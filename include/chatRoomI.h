@@ -8,7 +8,7 @@ namespace chat {
 
 class chatRoomI : public ::chat::chatRoom {
 public:
-    chatRoomI();
+    chatRoomI(const std::string& roomName);
     virtual ~chatRoomI();
 
     userList listUsers(const Ice::Current& current);
@@ -18,6 +18,7 @@ public:
     void Leave(std::string name, const Ice::Current& current);
 
 private:
+    std::string roomName;
     std::map<std::string, std::shared_ptr<UserPrx>> users;
 };
 

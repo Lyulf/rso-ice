@@ -6,11 +6,10 @@
 using namespace std;
 
 namespace chat {
-
 // creates new chat room
 shared_ptr<chatRoomPrx> chatRoomFactoryI::newChatRoom(string name, const Ice::Current& current) {
     UNUSED(current);
-    auto room = make_shared<chatRoomI>();
+    auto room = make_shared<chatRoomI>(name);
     chatRooms[name] = room;
     cout << "Room [" << name << "] created\n";
     return Ice::uncheckedCast<chatRoomPrx>(current.adapter->addWithUUID(room));
