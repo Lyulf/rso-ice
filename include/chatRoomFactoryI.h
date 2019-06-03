@@ -3,6 +3,7 @@
 
 #include <chat.h>
 #include <map>
+#include <mutex>
 
 namespace chat {
 
@@ -12,6 +13,7 @@ public:
 
 private:
     std::map<std::string, std::shared_ptr<chatRoom>> chatRooms;
+    std::mutex mtx;
 };
 
 }

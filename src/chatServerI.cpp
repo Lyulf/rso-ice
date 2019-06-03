@@ -9,7 +9,7 @@ using namespace std;
 namespace chat {
 
 chatServerI::chatServerI()
-    : chatServer(), chatRooms(), factories() { }
+    : chatServer(), chatRooms(), factories(), mtx() { }
 
 chatServerI::~chatServerI() = default;
 
@@ -18,6 +18,7 @@ RoomList chatServerI::getRooms(const Ice::Current& current) {
     UNUSED(current);
     RoomList currentRooms;
 
+    lock_guard lck(mtx);
     for(auto room : chatRooms) {
         RoomInfo info;
         info.name = room.first;
@@ -31,62 +32,69 @@ RoomList chatServerI::getRooms(const Ice::Current& current) {
 shared_ptr<chatRoomPrx> chatServerI::getRoom(string name, const Ice::Current& current) {
     UNUSED(current);
     name = validateName(name);
-    if(chatRooms.find(name) == chatRooms.end()) {
+    lock_guard lck(mtx);
+    auto roomIter = chatRooms.find(name);
+    if(roomIter == chatRooms.end()) {
         throw NoSuchRoom();
     }
-    return chatRooms[name];
+    return roomIter->second;
 }
 
 // creates chat room using least used factory
 shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current& current) {
     UNUSED(current);
-    if(factories.empty()) {
-        return nullptr;
-    }
-    static long long roomNo = 0;
-    if(name.empty()) {
-        name = "Room" + to_string(roomNo + 1);
-    }
-    name = validateName(name);
-    if(chatRooms.find(name) != chatRooms.end()) {
-        throw NameAlreadyExists();
-    }
     shared_ptr<chatRoomFactoryPrx> factory;
     size_t minUsers = numeric_limits<size_t>::max();
-    for(auto factoryPair : factories) {
-        size_t users = 0;
-        for(auto chatRoomName : factoryPair.second) {
-            users += chatRooms[chatRoomName]->listUsers().size();
+    chatRoomPrxPtr room;
+    {
+        lock_guard lck(mtx);
+        if(factories.empty()) {
+            return nullptr;
         }
-        if(users < minUsers) {
-            factory = factoryPair.first;
-            minUsers = users;
+        name = validateName(name);
+        if(chatRooms.find(name) != chatRooms.end()) {
+            throw NameAlreadyExists();
         }
+        for(auto factoryPair : factories) {
+            size_t users = 0;
+            for(auto chatRoomName : factoryPair.second) {
+                users += chatRooms[chatRoomName]->listUsers().size();
+            }
+            if(users < minUsers) {
+                factory = factoryPair.first;
+                minUsers = users;
+            }
+        }
+        room = chatRooms[name] = factory->newChatRoom(name);
+        factories[factory].insert(name);
     }
-    auto room = chatRooms[name] = factory->newChatRoom(name);
-    factories[factory].insert(name);
     cout << "Created room [" << name << "] using factory " << factory->ice_getIdentity().name << endl;
-    roomNo++;
     return room;
 }
 
 // registers new factory
 void chatServerI::registerFactory(chatRoomFactoryPrxPtr crf, const Ice::Current& current) {
     UNUSED(current);
-    factories[crf];
+    {
+        lock_guard lck(mtx);
+        factories[crf];
+    }
     cout << "Registered factory " << crf->ice_getIdentity().name << endl;
 } 
 
 // unregisters factory
 void chatServerI::unregisterFactory(chatRoomFactoryPrxPtr crf, const Ice::Current& current) {
     UNUSED(current);
-    auto rooms = factories[crf];
-    for(auto iter = chatRooms.begin(); iter != chatRooms.end(); iter++) {
-       if(rooms.find(iter->first) != rooms.end()) {
-           chatRooms.erase(iter);
-       } 
+    {
+        lock_guard lck(mtx);
+        auto rooms = factories[crf];
+        for(auto iter = chatRooms.begin(); iter != chatRooms.end(); iter++) {
+            if(rooms.find(iter->first) != rooms.end()) {
+                chatRooms.erase(iter);
+            } 
+        }
+        factories.erase(crf);
     }
-    factories.erase(crf);
     cout << "Unregistered factory " << crf->ice_getIdentity().name << endl;
 }
 

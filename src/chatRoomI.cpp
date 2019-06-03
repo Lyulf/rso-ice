@@ -16,23 +16,24 @@ chatRoomI::~chatRoomI() = default;
 userList chatRoomI::listUsers(const Ice::Current& current) {
     UNUSED(current);
     userList currentUsers;
-    transform(users.begin(), users.end(), back_inserter(currentUsers), [](auto userPair) { return userPair.first; });
+    {
+        lock_guard lck(mtx);
+        transform(users.begin(), users.end(), back_inserter(currentUsers), [](auto userPair) { return userPair.first; });
+    }
     return currentUsers;
 }
 
 // adds user to the room 
 void chatRoomI::join(string nick, shared_ptr<UserPrx> who, const Ice::Current& current) {
     UNUSED(current);
-    static long long userNo = 0;
-    if(nick.empty()) {
-        nick = "User" + to_string(userNo + 1);
+    {
+        lock_guard lck(mtx);
+        nick = validateName(nick);
+        if(users.find(nick) != users.end()) {
+            throw NickNotAvailable();
+        }
+        users[nick] = who;
     }
-    nick = validateName(nick);
-    if(users.find(nick) != users.end()) {
-        throw NickNotAvailable();
-    }
-    userNo++;
-    users[nick] = who;
     ostringstream ss;
     ss << "User \"" << nick << "\" joined the room [" << roomName << "]";
     string msg = ss.str();
@@ -44,8 +45,10 @@ void chatRoomI::join(string nick, shared_ptr<UserPrx> who, const Ice::Current& c
 void chatRoomI::postMessage(string message, string fromWho, const Ice::Current& current) {
     UNUSED(current);
     fromWho = validateName(fromWho);
-    for(auto userPair : users) {
-        auto user = userPair.second;
+
+    lock_guard lck(mtx);
+    for(auto iter : users) {
+        auto user = iter.second;
         user->sendMessage(message, fromWho);
     }
 }
@@ -54,7 +57,11 @@ void chatRoomI::postMessage(string message, string fromWho, const Ice::Current& 
 shared_ptr<UserPrx> chatRoomI::getUser(string name, const Ice::Current& current) {
     UNUSED(current);
     name = validateName(name);
-    auto user = users.find(name);
+    decltype(users)::iterator user;
+    {
+        lock_guard lck(mtx);
+        user = users.find(name);
+    }
     if(user == users.end()) {
         throw NoSuchUser();
     }
@@ -65,7 +72,10 @@ shared_ptr<UserPrx> chatRoomI::getUser(string name, const Ice::Current& current)
 void chatRoomI::Leave(string name, const Ice::Current& current) {
     UNUSED(current);
     name = validateName(name);
-    users.erase(name);
+    {
+        lock_guard lck(mtx);
+        users.erase(name);
+    }
     ostringstream ss;
     ss << "User \"" << name << "\" left the room [" << roomName << "]";
     string msg = ss.str();

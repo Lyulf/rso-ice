@@ -45,5 +45,5 @@ void ChatRoomServer::interruptCallback(int signal) {
 
 int main(int argc, char** argv) {
 	chat::ChatRoomServer server;
-	return server.main(argc, argv);
+	return server.main(argc, argv, "config.chat_server");
 }

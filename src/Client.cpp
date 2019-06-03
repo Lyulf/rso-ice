@@ -157,7 +157,7 @@ Menu Client::createLobbyMenu() {
             try {
                 this->createRoom(nick, roomName);
                 if(room) {
-                    cout << "Created room " << roomName << endl;
+                    cout << "Created room [" << roomName << "]\n";
                     cout << endl;
                     cout << "To write a command start the line with '/'\n";
                 } else {
@@ -181,13 +181,13 @@ Menu Client::createLobbyMenu() {
             auto nick = args[1];
             try {
                 this->joinRoom(nick, roomName);
-                cout << "Joined room " << roomName << endl;
                 cout << endl;
                 cout << "To write a command start the line with '/'\n";
             } catch(NoSuchRoom& e) {
                 cout << "Room " << roomName << " doesn't exist\n";
             } catch(NickNotAvailable& e) {
                 cout << "Nick " << nick << " is not available\n";
+                room.reset();
             }
         },
         "join <room_name> <nick>: Joins room if it exists as <nick>\n"
@@ -340,8 +340,8 @@ RoomList Client::listRooms() {
 void Client::createRoom(const std::string& username, const std::string& roomName) {
     room = server->newChatRoom(roomName);
     if(room) {
+        room->join(username, userPrx);
         name = username;
-        room->join(name, userPrx);
     }
 }
 
@@ -349,8 +349,8 @@ void Client::joinRoom(const std::string& username, const std::string& roomName)
 {
     room = server->getRoom(roomName);
     if(room) {
+        room->join(username, userPrx);
         name = username;
-        room->join(name, userPrx);
     }
 }
 
@@ -383,5 +383,5 @@ void Client::leaveRoom() {
 //------------------------------
 int main(int argc, char* argv[]) {
     auto client = make_shared<Client>();
-    return client->main(argc, argv);
+    return client->main(argc, argv, "config.client");
 }

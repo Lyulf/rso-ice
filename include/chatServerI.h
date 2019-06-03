@@ -5,6 +5,7 @@
 #include <map>
 #include <unordered_set>
 #include <ChatUtils.h>
+#include <mutex>
 
 namespace chat {
 
@@ -22,6 +23,7 @@ public:
 private:
 	std::map<std::string, chatRoomPrxPtr> chatRooms;
 	std::map<chatRoomFactoryPrxPtr, std::unordered_set<std::string>, Ice::ProxyIdentityLess> factories;
+	std::mutex mtx;
 };
 
 }

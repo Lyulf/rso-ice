@@ -6,7 +6,7 @@ LDFLAGS					= $(STD) $(WARNINGS) -pthread -lIce++11
 DEPFLAGS			 	= -MT $@ -MD -MP -MF $(DEP_DIR)/$*.d
 
 MASTER_SERVER_EXE		= main_server
-CHILD_SERVER_EXE		= factory_server
+CHILD_SERVER_EXE		= chat_server
 CLIENT_EXE				= client
 
 SLICE_SRC				= chat.ice

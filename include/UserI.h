@@ -9,9 +9,6 @@ class UserI : public ::chat::User {
 public:
     void sendMessage(std::string message, std::string fromWho, const Ice::Current& current);
     void sendPrivateMessage(std::string message, std::string fromWho, const Ice::Current& current);
-private:
-    std::string getInput();
-    void putInput(const std::string& input);
 };
 
 }

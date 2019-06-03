@@ -22,5 +22,5 @@ int Server::run(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     chat::Server server;
-    return server.main(argc, argv);
+    return server.main(argc, argv, "config.main_server");
 }

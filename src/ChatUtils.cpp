@@ -11,8 +11,4 @@ string validateName(string name) {
     return name;
 }
 
-bool ProxyComparator::operator()(Ice::ObjectPrxPtr left, Ice::ObjectPrxPtr right) const {
-    return left->ice_getIdentity() == right->ice_getIdentity(); 
-}
-
 }
