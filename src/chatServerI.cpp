@@ -40,6 +40,9 @@ shared_ptr<chatRoomPrx> chatServerI::getRoom(string name, const Ice::Current& cu
 // creates chat room using least used factory
 shared_ptr<chatRoomPrx> chatServerI::newChatRoom(string name, const Ice::Current& current) {
     UNUSED(current);
+    if(factories.empty()) {
+        return nullptr;
+    }
     static long long roomNo = 0;
     if(name.empty()) {
         name = "Room" + to_string(roomNo + 1);

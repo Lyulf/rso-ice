@@ -156,9 +156,13 @@ Menu Client::createLobbyMenu() {
             auto nick = args[1];
             try {
                 this->createRoom(nick, roomName);
-                cout << "Created room " << roomName << endl;
-                cout << endl;
-                cout << "To write a command start the line with '/'\n";
+                if(room) {
+                    cout << "Created room " << roomName << endl;
+                    cout << endl;
+                    cout << "To write a command start the line with '/'\n";
+                } else {
+                    cout << "Failed to create the room\n";
+                }
             } catch(NameAlreadyExists& e) {
                 cout << "Room " << roomName << " already exists\n";
             }
@@ -334,16 +338,20 @@ RoomList Client::listRooms() {
 }
 
 void Client::createRoom(const std::string& username, const std::string& roomName) {
-        room = server->newChatRoom(roomName);
-    name = username;
-    room->join(name, userPrx);
+    room = server->newChatRoom(roomName);
+    if(room) {
+        name = username;
+        room->join(name, userPrx);
+    }
 }
 
 void Client::joinRoom(const std::string& username, const std::string& roomName)
 {
-        room = server->getRoom(roomName);
+    room = server->getRoom(roomName);
+    if(room) {
         name = username;
         room->join(name, userPrx);
+    }
 }
 
 //------------------------------
